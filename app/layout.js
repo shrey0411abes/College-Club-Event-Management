@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
 import { RegistrationProvider } from "@/context/RegistrationContext";
 import { StoreProvider } from "@/context/StoreProvider";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -24,7 +25,7 @@ export const metadata = {
     template: "%s | CodeChef ABESEC",
   },
   description:
-    "Official event portal for CodeChef ABESEC Chapter at ABES Engineering College. Discover upcoming hackathons, competitive programming contests, AI workshops, and open-source bootcamps. Register in seconds.",
+    "Event portal for CodeChef ABESEC Chapter at ABES Engineering College. Discover upcoming hackathons, competitive programming contests, AI workshops, and open-source bootcamps. Register in seconds.",
   keywords: [
     "CodeChef",
     "ABESEC",
@@ -77,6 +78,7 @@ export default function RootLayout({ children }) {
       className={`${outfit.variable} ${inter.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-[#090d16] text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200">
+        <AnimatedBackground />
         <Toaster
           position="top-right"
           toastOptions={{

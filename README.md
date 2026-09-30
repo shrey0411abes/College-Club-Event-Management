@@ -60,7 +60,8 @@
 Data lives directly in the browser via `localStorage` behind a single unified storage module:
 
 - **Storage Keys**: Events are persisted under `cc_events_v1` and registrations under `cc_regs_v1`.
-- **Default Seed**: When storage is empty, `lib/store.js` automatically initializes 6 sample events (4 upcoming, 2 past, 1 featured) and default sample registrations from `lib/seedData.js`.
+- **Default Seed**: When storage is empty, `lib/store.js` automatically initializes 6 sample events (4 upcoming, 2 past, 1 featured) and default sample registrations from `lib/seedData.js`. Seed events intentionally lack images to demonstrate the deterministic SVG fallback art.
+- **Images**: Event images can be added via URL, uploaded (saved as local base64 up to 400KB), or referenced from the `public/events/` directory (e.g. `/events/hero.jpg`). To add local photos manually, place your images in `public/events/` and reference their path.
 - **Resilience**: Every `localStorage` read and write is wrapped in try/catch blocks with automatic fallback to in-memory state if `localStorage` is disabled or blocked.
 - **Single Point of Replacement**: `lib/store.js` is the single file to replace when connecting a backend server or a persistent database. The rest of the UI interacts solely through the `useStore()` React context hook (`context/StoreProvider.js`).
 

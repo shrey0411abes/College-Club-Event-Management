@@ -1,17 +1,25 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useRef, useCallback } from "react";
+import EventCover from "./EventCover";
 import { useRegistration } from "@/context/RegistrationContext";
 import { isEventPast } from "@/lib/eventTime";
 
 /**
  * EventCard renders a single event with rich typography,
- * smooth hover elevation, image error fallback, and full keyboard accessibility.
+ * smooth hover elevation, cursor-tracking border glow, and full keyboard accessibility.
  */
 export default function EventCard({ event, isPast: isPastProp, priority = false }) {
   const { openRegistration } = useRegistration();
-  const [imgError, setImgError] = useState(false);
+  const cardRef = useRef(null);
+
+  const handlePointerMove = useCallback((e) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    card.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  }, []);
 
   if (!event) return null;
 
@@ -53,31 +61,14 @@ export default function EventCard({ event, isPast: isPastProp, priority = false 
 
   return (
     <article
-      className="group relative flex flex-col rounded-2xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-md overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10 focus-within:ring-2 focus-within:ring-indigo-500"
+      ref={cardRef}
+      onPointerMove={handlePointerMove}
+      className="card-glow specular-border-top group relative flex flex-col rounded-2xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/15 focus-within:ring-2 focus-within:ring-indigo-500"
       aria-labelledby={`event-title-${event.id}`}
     >
       {/* Event Image Banner or Graceful Fallback */}
-      <div className="relative h-48 w-full overflow-hidden bg-slate-950 border-b border-slate-800/60">
-        {event.imageUrl && !imgError ? (
-          <img
-            src={event.imageUrl}
-            alt=""
-            onError={() => setImgError(true)}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading={priority ? "eager" : "lazy"}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-tr from-slate-950 via-indigo-950/40 to-slate-900 flex flex-col items-center justify-center p-4 text-center">
-            <div className="w-12 h-12 rounded-xl bg-indigo-900/30 border border-indigo-700/30 flex items-center justify-center text-indigo-400 font-mono font-bold text-lg mb-2">
-              &lt;/&gt;
-            </div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              {event.category || "Campus Event"}
-            </span>
-          </div>
-        )}
-
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
+      <div className="relative border-b border-slate-800/60">
+        <EventCover event={event} variant="card" />
 
         {/* Category & Featured Badge */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
@@ -179,7 +170,7 @@ export default function EventCard({ event, isPast: isPastProp, priority = false 
               type="button"
               onClick={() => openRegistration(event)}
               aria-label={`Register for ${event.title}`}
-              className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 transition-all shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 flex items-center justify-center gap-2 group-hover:scale-[1.01] cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+              className="btn-liquid-shine w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 transition-all shadow-md shadow-indigo-600/25 hover:shadow-indigo-600/35 hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
             >
               Register Now
               <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

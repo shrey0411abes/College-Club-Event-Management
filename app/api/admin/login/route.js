@@ -21,7 +21,7 @@ function getClientIp(request) {
   );
 }
 
-function isRateLimited(ip) {
+function isTooManyRequests(ip) {
   const now = Date.now();
   const entry = loginAttempts.get(ip);
   if (!entry || now > entry.resetAt) {
@@ -44,7 +44,7 @@ export async function POST(request) {
   const ip = getClientIp(request);
 
   // Check rate limit before doing any processing
-  if (isRateLimited(ip)) {
+  if (isTooManyRequests(ip)) {
     return NextResponse.json(
       {
         success: false,

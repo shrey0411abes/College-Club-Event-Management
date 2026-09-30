@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useStore } from "@/context/StoreProvider";
@@ -110,6 +111,43 @@ export default function EventFormModal({ isOpen, onClose, event = null, onSucces
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File is too large (max 5 MB).");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_WIDTH = 1000;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+        setFormData((prev) => ({ ...prev, imageUrl: dataUrl }));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = ""; // clear input
+  };
  
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -145,7 +183,10 @@ export default function EventFormModal({ isOpen, onClose, event = null, onSucces
       onClose();
     } catch (err) {
       console.error("Save event failed:", err);
-      const errorMsg = err.message || "Failed to save event";
+      let errorMsg = err.message || "Failed to save event";
+      if (err.name === "QuotaExceededError" || errorMsg.includes("QuotaExceededError")) {
+        errorMsg = "Storage limit reached. Try a smaller image or delete old events.";
+      }
       setServerError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -316,19 +357,55 @@ export default function EventFormModal({ isOpen, onClose, event = null, onSucces
             {errors.description && <p className="text-rose-400 text-xs mt-1">{errors.description}</p>}
           </div>
 
-          {/* Image URL */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
-              Image URL (optional)
+          {/* Image Upload & URL */}
+          <div className="space-y-3">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+              Event Cover Image (Optional)
             </label>
-            <input
-              type="url"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleChange}
-              placeholder="https://images.unsplash.com/..."
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 text-sm text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-            />
+
+            {formData.imageUrl && (
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
+                <img
+                  src={formData.imageUrl}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, imageUrl: "" }))}
+                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-900/80 text-rose-400 hover:text-white hover:bg-rose-600 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <label className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-medium text-slate-200 border border-slate-700 cursor-pointer transition-colors whitespace-nowrap">
+                Upload Image
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+              <div className="flex-1 relative">
+                <input
+                  type="url"
+                  name="imageUrl"
+                  value={formData.imageUrl}
+                  onChange={handleChange}
+                  placeholder="Or paste an image URL..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 text-sm text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              JPEG, PNG, or WEBP up to 5MB. Will be resized for local storage.
+            </p>
           </div>
 
           {/* Featured Toggle */}

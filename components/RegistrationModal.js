@@ -69,6 +69,24 @@ function downloadCalendarIcs(event) {
   toast.success("Calendar invite (.ics) downloaded!");
 }
 
+function AnimatedCheckmark() {
+  return (
+    <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/20">
+      <svg className="w-8 h-8 text-emerald-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          className="animate-check"
+          d="M5 13l4 4L19 7"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pathLength="100"
+        />
+      </svg>
+    </div>
+  );
+}
+
 export default function RegistrationModal({ event, isOpen, onClose }) {
   const { addRegistration } = useStore();
   const [formData, setFormData] = useState({
@@ -83,9 +101,23 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
   const [registeredData, setRegisteredData] = useState(null);
+  const [shaking, setShaking] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const modalRef = useRef(null);
   const firstInputRef = useRef(null);
+
+  // Entrance animation trigger
+  useEffect(() => {
+    if (!isOpen) return;
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 16);
+    return () => {
+      clearTimeout(timer);
+      setMounted(false);
+    };
+  }, [isOpen]);
 
   // Lock body scroll and focus first input on mount
   useEffect(() => {
@@ -94,7 +126,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
     document.body.style.overflow = "hidden";
     const timer = setTimeout(() => {
       firstInputRef.current?.focus();
-    }, 50);
+    }, 100);
 
     return () => {
       document.body.style.overflow = "unset";
@@ -185,6 +217,11 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
     setErrors((prev) => ({ ...prev, [name]: err }));
   };
 
+  const triggerShake = () => {
+    setShaking(true);
+    setTimeout(() => setShaking(false), 400);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -204,6 +241,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
     setErrors(newErrors);
 
     if (Object.values(newErrors).some(Boolean)) {
+      triggerShake();
       return;
     }
 
@@ -225,16 +263,25 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
       } else {
         setServerError(result.error);
         toast.error(result.error);
+        triggerShake();
       }
     } catch (err) {
       console.error("Registration error:", err);
       const errorMsg = err.message || "Registration failed. Please try again.";
       setServerError(errorMsg);
       toast.error(errorMsg);
+      triggerShake();
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const inputClass = (field) =>
+    `w-full px-4 py-2.5 rounded-xl bg-slate-950/80 text-sm text-white placeholder-slate-500 border transition-all focus:outline-none focus:ring-2 ${
+      touched[field] && errors[field]
+        ? "border-rose-500 focus:ring-rose-500/50"
+        : "border-slate-700 focus:border-indigo-500 focus:ring-indigo-500/50"
+    }`;
 
   return (
     <div
@@ -245,16 +292,22 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
+        className={`fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300 ${
+          mounted ? "opacity-100" : "opacity-0"
+        }`}
         onClick={() => {
           if (!isSubmitting) onClose();
         }}
       />
 
-      {/* Modal Card */}
+      {/* Modal Card with entrance animation */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-700/80 shadow-2xl shadow-indigo-950/50 p-6 sm:p-8 z-10 my-auto text-slate-100 animate-in fade-in zoom-in-95 duration-200"
+        className={`relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-700/80 shadow-2xl shadow-indigo-950/50 p-6 sm:p-8 z-10 my-auto text-slate-100 transition-all duration-300 max-h-[90vh] overflow-y-auto ${
+          mounted
+            ? "opacity-100 scale-100 translate-y-0"
+            : "opacity-0 scale-95 translate-y-4"
+        } ${shaking ? "animate-shake" : ""}`}
       >
         {/* Close Button */}
         <button
@@ -263,7 +316,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
           aria-label="Close registration dialog"
           className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer disabled:opacity-50"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -271,11 +324,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
         {registeredData ? (
           /* SUCCESS SCREEN */
           <div className="text-center py-2 space-y-6">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
+            <AnimatedCheckmark />
 
             <div className="space-y-2">
               <h3 id="registration-modal-title" className="text-2xl font-extrabold text-white">
@@ -321,7 +370,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
               <button
                 type="button"
                 onClick={() => downloadCalendarIcs(event)}
-                className="w-full py-3 px-6 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
+                className="w-full py-3 px-6 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -332,7 +381,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full py-2.5 px-6 rounded-2xl font-semibold text-sm text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+                className="w-full py-2.5 px-6 rounded-2xl font-semibold text-sm text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
               >
                 Close
               </button>
@@ -362,7 +411,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
                 role="alert"
                 className="mt-4 p-3.5 rounded-2xl bg-rose-950/60 border border-rose-700/60 text-rose-300 text-xs sm:text-sm flex items-start gap-2.5"
               >
-                <svg className="w-5 h-5 flex-shrink-0 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 flex-shrink-0 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <span>{serverError}</span>
@@ -388,15 +437,11 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
                   aria-invalid={Boolean(touched.name && errors.name)}
                   aria-describedby={touched.name && errors.name ? "name-error" : undefined}
                   placeholder="e.g. Aarav Sharma"
-                  className={`w-full px-4 py-2.5 rounded-xl bg-slate-950/80 text-sm text-white placeholder-slate-500 border transition-all focus:outline-none focus:ring-2 ${
-                    touched.name && errors.name
-                      ? "border-rose-500 focus:ring-rose-500/50"
-                      : "border-slate-700 focus:border-indigo-500 focus:ring-indigo-500/50"
-                  }`}
+                  className={inputClass("name")}
                 />
                 {touched.name && errors.name && (
                   <p id="name-error" className="text-rose-400 text-xs mt-1 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     {errors.name}
@@ -420,15 +465,11 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
                   aria-invalid={Boolean(touched.email && errors.email)}
                   aria-describedby={touched.email && errors.email ? "email-error" : undefined}
                   placeholder="e.g. student@abesec.ac.in"
-                  className={`w-full px-4 py-2.5 rounded-xl bg-slate-950/80 text-sm text-white placeholder-slate-500 border transition-all focus:outline-none focus:ring-2 ${
-                    touched.email && errors.email
-                      ? "border-rose-500 focus:ring-rose-500/50"
-                      : "border-slate-700 focus:border-indigo-500 focus:ring-indigo-500/50"
-                  }`}
+                  className={inputClass("email")}
                 />
                 {touched.email && errors.email && (
                   <p id="email-error" className="text-rose-400 text-xs mt-1 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     {errors.email}
@@ -452,15 +493,11 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
                   aria-invalid={Boolean(touched.collegeYear && errors.collegeYear)}
                   aria-describedby={touched.collegeYear && errors.collegeYear ? "collegeYear-error" : undefined}
                   placeholder="e.g. 3rd Year CSE, ABESEC"
-                  className={`w-full px-4 py-2.5 rounded-xl bg-slate-950/80 text-sm text-white placeholder-slate-500 border transition-all focus:outline-none focus:ring-2 ${
-                    touched.collegeYear && errors.collegeYear
-                      ? "border-rose-500 focus:ring-rose-500/50"
-                      : "border-slate-700 focus:border-indigo-500 focus:ring-indigo-500/50"
-                  }`}
+                  className={inputClass("collegeYear")}
                 />
                 {touched.collegeYear && errors.collegeYear && (
                   <p id="collegeYear-error" className="text-rose-400 text-xs mt-1 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     {errors.collegeYear}
@@ -485,15 +522,11 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
                   aria-invalid={Boolean(touched.phone && errors.phone)}
                   aria-describedby={touched.phone && errors.phone ? "phone-error" : undefined}
                   placeholder="e.g. 9876543210"
-                  className={`w-full px-4 py-2.5 rounded-xl bg-slate-950/80 text-sm text-white placeholder-slate-500 border transition-all focus:outline-none focus:ring-2 ${
-                    touched.phone && errors.phone
-                      ? "border-rose-500 focus:ring-rose-500/50"
-                      : "border-slate-700 focus:border-indigo-500 focus:ring-indigo-500/50"
-                  }`}
+                  className={inputClass("phone")}
                 />
                 {touched.phone && errors.phone && (
                   <p id="phone-error" className="text-rose-400 text-xs mt-1 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     {errors.phone}
@@ -506,7 +539,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 px-6 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+                  className="w-full py-3 px-6 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
                 >
                   {isSubmitting ? (
                     <>
@@ -514,6 +547,7 @@ export default function RegistrationModal({ event, isOpen, onClose }) {
                         className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                         fill="none"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <circle
                           className="opacity-25"

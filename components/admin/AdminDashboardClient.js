@@ -1,11 +1,11 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import EventFormModal from "./EventFormModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
+import EventCover from "../EventCover";
 import { useStore } from "@/context/StoreProvider";
 import { isEventPast } from "@/lib/eventTime";
 
@@ -261,17 +261,9 @@ export default function AdminDashboardClient() {
                         >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              {event.imageUrl ? (
-                                <img
-                                  src={event.imageUrl}
-                                  alt=""
-                                  className="w-12 h-12 rounded-xl object-cover border border-slate-700 flex-shrink-0"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-xs font-mono font-bold text-slate-400 border border-slate-700 flex-shrink-0">
-                                  &lt;/&gt;
-                                </div>
-                              )}
+                              <div className="w-20 flex-shrink-0 rounded-xl overflow-hidden border border-slate-700">
+                                <EventCover event={event} variant="card" />
+                              </div>
                               <div>
                                 <p className="font-bold text-white group-hover:text-indigo-300 transition-colors">
                                   {event.title}
