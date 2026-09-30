@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useStore } from "@/context/StoreProvider";
 import FeaturedEventSection from "@/components/FeaturedEventSection";
+import CampusCinematicSection from "@/components/CampusCinematicSection";
 import EventCard from "@/components/EventCard";
 import { isEventPast } from "@/lib/eventTime";
 import { useReveal } from "@/hooks/useReveal";
@@ -191,7 +192,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. Featured Event Highlight Section */}
+      {/* 2. College Dynamic Animation Showcase */}
+      <RevealSection delay={80}>
+        <CampusCinematicSection />
+      </RevealSection>
+
+      {/* 3. Featured Event Highlight Section */}
       {isLoading ? (
         <section id="featured" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
           <div className="flex items-center justify-between mb-6">
