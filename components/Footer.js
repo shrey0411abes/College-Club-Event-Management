@@ -28,7 +28,7 @@ export default function Footer() {
             <div className="flex items-center gap-4 text-xs text-slate-400 pt-2">
               <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-800/50 text-emerald-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Official Chapter
+                Student Chapter
               </span>
               <span>•</span>
               <span>ABESEC Ghaziabad</span>

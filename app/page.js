@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useStore } from "@/context/StoreProvider";
 import FeaturedEventSection from "@/components/FeaturedEventSection";
 import CampusCinematicSection from "@/components/CampusCinematicSection";
+import EventShowcaseCarousel from "@/components/EventShowcaseCarousel";
 import EventCard from "@/components/EventCard";
 import { isEventPast } from "@/lib/eventTime";
 import { useReveal } from "@/hooks/useReveal";
@@ -195,6 +196,11 @@ export default function HomePage() {
       {/* 2. College Dynamic Animation Showcase */}
       <RevealSection delay={80}>
         <CampusCinematicSection />
+      </RevealSection>
+
+      {/* 2.5. Tech Event Showcase Carousel */}
+      <RevealSection delay={100}>
+        <EventShowcaseCarousel />
       </RevealSection>
 
       {/* 3. Featured Event Highlight Section */}

@@ -77,7 +77,7 @@ export default function CampusCinematicSection() {
 
         {/* Right Side: Dynamic College Video & Architectural Animation */}
         <div className="lg:col-span-8 relative rounded-3xl overflow-hidden border border-indigo-500/30 bg-slate-950 shadow-2xl shadow-black/60 min-h-[360px] sm:min-h-[420px] flex items-center justify-center group specular-border-top">
-          {/* Real Official ABES Campus Video with Ken-Burns and Cosmic Overlays */}
+          {/* College Campus Video with Ken-Burns and Cosmic Overlays */}
           {!videoError ? (
             <video
               autoPlay
@@ -118,7 +118,7 @@ export default function CampusCinematicSection() {
             <div className="max-w-xl space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-950/85 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-lg">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                Official College Campus
+                College Campus
               </div>
 
               <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight drop-shadow-md">
@@ -126,7 +126,7 @@ export default function CampusCinematicSection() {
               </h3>
 
               <p className="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-lg backdrop-blur-md bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 shadow-md">
-                Recognized among premier technical institutions in Delhi-NCR, ABESEC blends
+                A technical institution in Delhi-NCR, ABESEC combines
                 modern computing laboratories, innovation incubators, and student-driven hackathon sprints.
               </p>
             </div>
